@@ -1,0 +1,32 @@
+import json
+from collections import namedtuple
+import inspect
+
+class Peer(object):
+    def __init__(self):
+        self.id = 'kos'
+        self.peerid = PPP()
+        self.bitmap = '11111'
+
+class PPP(object):
+    def __init__(self):
+        self.pid = 'kos'
+#        self.room = Peer()
+
+class Work(object):
+
+    def recur(obj):
+    obj_list.add(obj)
+    print 'type=',type(obj),'  obj_list=', obj_list
+    result = {}
+    for each in obj.__dict__:
+	result[each] = getattr(obj, each)
+	if not (isinstance(result[each], int) or isinstance(result[each], str)):
+	    recur(result[each])
+	else:
+	    print each+' - '+result[each]
+    return result
+
+record = recur(Peer())
+#print record
+

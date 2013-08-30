@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
+# Author: Binux<i@binux.me>
+#         http://binux.me
+# Created on 2013-04-22 16:15:32
+import logging
+import pymongo
+
+class RoomManager(object):
+    def __init__(self):
+        self.rooms = {}
+	conn = pymongo.Connection()
+	db = conn.mydb
+	self.coll = db.mycoll
+
+
+    def new(self, meta):
+#	self.coll.remove({})
+	if hasattr(self, 'room') == False:
+	    self.room = Room(meta['hash'], meta)
+
+	self.put_to_base(meta['hash'], True)
+        return self.room
+
+    def delete(self, roomid):
+	logging.debug('delete: %s' % roomid)
+#	self.coll.remove({'hash': rommid})
+
+    def get(self, roomid):
+	logging.debug('get: %s' % roomid)
+	return self.get_from_base(roomid)
+
+    def keys(self):
+	logging.debug('keys: %s' % self.rooms.keys())
+        return self.rooms.keys()
+
+    def get_from_base(self, roomid):
+        if self.coll.find({'hash': roomid}).count() > 0:
+    	    record = self.coll.find({'hash': roomid})[0]
+	    if record:
+		logging.debug('get room from database: %s' % record['room'])
+    		for each in ('peers', 'hash', 'sha1_array', 'filename', 'piece_size', 'block_size', 'size', 'type', 'title', 'meta', 'id'):
+        	    setattr(self, each, record['room'][each])
+		return self
+    	    else:
+            	return None
+	else:
+	    return None
+
+    def put_to_base(self, roomid, full_check):
+	data = self.room.__dict__
+	record = {'hash': roomid, 'room': data}
+
+        if self.coll.find({'hash': roomid}).count() > 0:
+	    record = self.coll.find({'hash': roomid})[0]
+	    if record:
+		if full_check:
+		    if record['room']['sha1_array'] == self.room.sha1_array:
+ 			logging.debug('room exist: %s' % record['room'])
+			self.coll.update({'hash': roomid}, record)
+			logging.debug('update room to database: %s' % record)
+        	else:
+		    logging.debug('room exist: %s' % record['room'])
+		    self.coll.update({'hash': roomid}, record)
+		    logging.debug('update room to database: %s' % record)
+
+	else:
+	    self.coll.save(record)
+	    logging.debug('new room to database: %s' % record)
+
+#    def update_to_base(self, roomid):
+#	data = self.room.__dict__
+#	record = {'hash': roomid, 'room': data}
+
+#        if self.coll.find({'hash': roomid}).count() > 0:
+#	    record = self.coll.find({'hash': roomid})[0]
+#	    if record:
+#    		logging.debug('room exist: %s' % record['room'])
+#		self.coll.update({'hash': roomid}, record)
+#		logging.debug('update room to database: %s' % record)
+
+class Room(object):
+    def __init__(self, id, meta):
+        for each in ('hash', 'sha1_array', 'filename', 'piece_size', 'block_size', 'size', 'type'):
+            setattr(self, each, meta[each])
+
+        self.id = id
+        self.meta = meta
+        self.title = self.filename
+        self.peers = {}
+
+    def join(self, peerid, ws):
+	logging.debug('Room.join: %s' % peerid)
+        self.peers[peerid] = Peer(peerid, ws)
+        return self.peers[peerid]
+
+    def leave(self, peerid):
+	logging.debug('Room.leave: %s' % peerid)
+        if peerid in self.peers:
+            del self.peers[peerid]
+
+    def get(self, peerid):
+	logging.debug('Room.get: %s' % peerid)
+        return self.peers.get(peerid)
+
+    def peer_list(self):
+	logging.debug('Room.peer_list: %s' % self.peers)
+        result = {}
+        for each in self.peers.itervalues():
+            result[each.peerid] = {
+                    'bitmap': each.bitmap,
+                    }
+        return result
+
+
+
+class Peer(object):
+    def __init__(self, peerid, ws):
+        self.ws = ws
+        self.peerid = peerid
+        self.bitmap = ''

@@ -1,0 +1,17 @@
+{% extends ../base.html %}
+
+{% block title %}webrtc_video - new{% end %}
+
+{% block main %}
+<section>
+  <ul id=J_console> </ul>
+</section>
+{% end %}
+
+{% block script %}
+<script>
+  require(['room_new.app'], function(room) {
+    window.client = room.client; // for debug
+  });
+</script>
+{% end %}
