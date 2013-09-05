@@ -40,6 +40,19 @@ class RoomManager(object):
 	logging.debug('keys: %s' % self.rooms.keys())
         return self.rooms.keys()
 
+    def get_url(self, url):
+	conn = pymongo.Connection()
+	db_site_id = conn.site_id_db
+	coll_site_id = db_site_id.mycoll
+	if url:
+	    if coll_site_id.find({'url': url}).count() > 0:
+    		record = coll_site_id.find({'url': url})[0]
+    		if record:
+		    return record['roomid']
+		    conn.close()
+	conn.close()
+	return None
+
 class Room(object):
     def __init__(self, id, meta):
         for each in ('hash', 'sha1_array', 'filename', 'piece_size', 'block_size', 'size', 'type'):
@@ -76,6 +89,7 @@ class Room(object):
     def add_http_peer(self):
 	class_to_base(self, self.id)
 
+
 class Peer(object):
     def __init__(self, peerid, ws):
         self.ws = ws
@@ -88,6 +102,8 @@ def class_to_base(obj_class, roomid):
     conn = pymongo.Connection()
     db = conn.mydb
     coll = db.mycoll
+    db_site_id = conn.site_id_db
+    coll_site_id = db_site_id.mycoll
 
     ws_save = {}
     for peerid in obj_class.peers:
@@ -99,9 +115,20 @@ def class_to_base(obj_class, roomid):
     for peerid in obj_class.peers:
 	obj_class.peers[peerid].ws = ws_save[peerid]
 
+    doc = {}
     for peerid in obj_class.peers:
 	if peerid and peerid.find('http') < 0:
     	    del obj_tmp.peers[peerid]
+	else:
+	    doc = {'url': peerid ,'roomid': roomid}
+
+    if doc:
+	if coll_site_id.find({'url': doc['url']}).count() > 0:
+    	    record = coll_site_id.find({'url': doc['url']})[0]
+    	    if record:
+		coll_site_id.update({'url': doc['url']}, doc)
+	else:
+	    coll_site_id.save(doc)
 
     s = cPickle.dumps(obj_tmp, cPickle.HIGHEST_PROTOCOL)
 

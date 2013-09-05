@@ -1,16 +1,16 @@
 {% extends ../base.html %}
 
-{% block title %}webrtc_video - {{ room.meta.get('filename') }}{% end %}
+{% block title %}webrtc_video - {% end %}
 
 {% block main %}
 <section>
+  <div id=J_video_wrap><video id=p2p_J_video src="http://duroscope.ru:8000/MMM" controls>video not supported</video></div>
   <ul id=J_console> </ul>
 </section>
 {% end %}
 
 {% block script %}
 <script>
-  window.roomid = '{{ room.id }}';
   require(['room.app'], function(room) {
     window.client = room.client;
   });

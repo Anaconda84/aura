@@ -84,6 +84,11 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       console.debug('p2p:End update_bitmap');
     },
 
+    get_url: function(url) {
+      console.debug('p2p:get_url');
+      this.ws.send(JSON.stringify({cmd: 'get_url', url: url}));
+    },
+
     health: function() {
       console.debug('p2p:health');
       if (!this.file_meta) {
@@ -110,6 +115,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
     onready: function() { console.log('onready'); },
     onfilemeta: function(file_meta) { console.log('onfilemeta', file_meta); },
     onpeerlist: function(peer_list) { console.log('onpeerlist', peer_list); },
+    ongeturl: function(url) { console.log('ongeturl', url); },
     onpeerconnect: function(peer) { console.log('onnewpeer', peer); },
     onpeerdisconnect: function(peer) { console.log('onnewpeer', peer); },
     onpiece: function(piece) { console.log('onpiece', piece); },
@@ -449,6 +455,13 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
               this.onpeerlist(this.peer_list);
             }
             break;
+          case 'find_url':
+            this.url = msg.url;
+            if (_.isFunction(this.ongeturl)) {
+              this.ongeturl(this.url);
+            }
+            break;
+
           default:
             break;
         }

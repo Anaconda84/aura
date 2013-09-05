@@ -1,0 +1,170 @@
+# You may add here your
+# server {
+#	...
+# }
+# statements for each of your virtual hosts
+
+#server {
+#    listen 80;
+#    server_name www.duroscore.ru;
+#    rewrite ^ http://$host:8080/video permanent;
+#}
+
+server {
+	listen   80 default;
+	server_name  duroskop;
+
+	location / {
+		root   /var/www/Duroskop;
+		fastcgi_pass 127.0.0.1:9090;
+		include /etc/nginx/fastcgi_params;
+		fastcgi_intercept_errors on;
+		index  index.html index.htm;
+	}
+
+	#error_page  404  /404.html;
+
+	# redirect server error pages to the static page /50x.html
+	#
+	#error_page   500 502 503 504  /50x.html;
+	#location = /50x.html {
+	#	root   /var/www/nginx-default;
+	#}
+
+	# proxy the PHP scripts to Apache listening on 127.0.0.1:80
+	#
+	#location ~ \.php$ {
+		#proxy_pass   http://127.0.0.1;
+	#}
+
+	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+	#
+	location ~ \.php$ {
+		root   /var/www/Duroskop;
+	        include /etc/nginx/fastcgi_params;
+	        fastcgi_pass unix:/var/run/php-fastcgi/php-fastcgi.socket;
+	        fastcgi_index index.php;
+	        fastcgi_param SCRIPT_FILENAME /var/www/Duroskop$fastcgi_script_name;
+	}
+
+	# deny access to .htaccess files, if Apache's document root
+	# concurs with nginx's one
+	#
+	#location ~ /\.ht {
+		#deny  all;
+	#}
+}
+
+server {
+	listen   8080 default;
+	server_name  duroskop;
+
+	location / {
+		root   /var/www/Duroskop;
+		fastcgi_pass 127.0.0.1:9090;
+		include /etc/nginx/fastcgi_params;
+		fastcgi_intercept_errors on;
+		index  index.html index.htm;
+	}
+
+	#error_page  404  /404.html;
+
+	# redirect server error pages to the static page /50x.html
+	#
+	#error_page   500 502 503 504  /50x.html;
+	#location = /50x.html {
+	#	root   /var/www/nginx-default;
+	#}
+
+	# proxy the PHP scripts to Apache listening on 127.0.0.1:80
+	#
+	#location ~ \.php$ {
+		#proxy_pass   http://127.0.0.1;
+	#}
+
+	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+	#
+	location ~ \.php$ {
+		root   /var/www/Duroskop;
+	        include /etc/nginx/fastcgi_params;
+	        fastcgi_pass unix:/var/run/php-fastcgi/php-fastcgi.socket;
+	        fastcgi_index index.php;
+	        fastcgi_param SCRIPT_FILENAME /var/www/Duroskop$fastcgi_script_name;
+	}
+
+	# deny access to .htaccess files, if Apache's document root
+	# concurs with nginx's one
+	#
+	#location ~ /\.ht {
+		#deny  all;
+	#}
+}
+
+server {
+	listen   8000 default;
+	server_name  duroskop_files;
+
+	location / {
+		root   /var/www/Duroskop/VideoSite/files;
+		index  index.html index.htm;
+		proxy_http_version 1.1;
+
+    if ($request_method = 'OPTIONS') {
+ 
+        add_header 'Access-Control-Allow-Origin' '*';
+        
+        #
+        # Om nom nom cookies
+        #
+ 
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        
+        #
+        # Custom headers and headers various browsers *should* be OK with but aren't
+        #
+ 
+        add_header 'Access-Control-Allow-Headers' 'Range,DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        
+        #
+        # Tell client that this pre-flight info is valid for 20 days
+        #
+ 
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'Content-Type' 'text/plain charset=UTF-8';
+        add_header 'Content-Length' 0;
+ 
+        return 204;
+     }
+ 
+     if ($request_method = 'POST') {
+ 
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'Range,DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+ 
+     }
+ 
+     if ($request_method = 'GET') {
+ 
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'Range,DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+ 
+     }
+	}
+}
+
+
+server {
+	listen   6878 default;
+	server_name  duroskop_files_django;
+
+	location / {
+		root   /var/www/Duroskop;
+		index  index.html index.htm;
+	}
+}
+

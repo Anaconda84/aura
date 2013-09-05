@@ -20,10 +20,11 @@ class ListRoomHandler(BaseHandler):
 
 class RoomHandler(BaseHandler):
     def get(self, roomid):
-        room = self.room_manager.get(roomid)
-        if not room:
-            raise HTTPError(404)
-        self.render('room/index.html', room = room)
+#        room = self.room_manager.get(roomid)
+#        if not room:
+#            raise HTTPError(404)
+#        self.render('room/index.html', room = room)
+	self.render('room/index.html')
 
 class RoomWebSocket(BaseWebSocket):
     def open(self):
@@ -82,6 +83,11 @@ class RoomWebSocket(BaseWebSocket):
             peer = self.room.join(data['url'], self)
             peer.bitmap = data['bitmap']
 	    self.room.add_http_peer()
+
+    def cmd_get_url(self, url):
+	logging.debug('cmd_get_url: %s' % url)
+	if self.room_manager:
+    	    self.write_message({'cmd': 'find_url', 'url': self.room_manager.get_url(url['url'])})
 
 handlers = [
         (r'/room', ListRoomHandler),
