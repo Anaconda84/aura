@@ -57,6 +57,8 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
                             '<dt>connected</dt> <dd id=J_conn>0</dd>'+
                             '<dt>upload</dt> <dd id=J_ups>0B/s</dd> <dd id=J_up>0B</dd>'+
                             '<dt>download</dt> <dd id=J_dls>0B/s</dd> <dd id=J_dl>0B</dd>'+
+                            '<dt>http upload</dt> <dd id=J_ups_ht>0B/s</dd> <dd id=J_up_ht>0B</dd>'+
+                            '<dt>http download</dt> <dd id=J_dls_ht>0B/s</dd> <dd id=J_dl_ht>0B</dd>'+
                            '</dl> <button id=J_refresh_peer_list>refresh</button>');
 
           $('#J_refresh_peer_list').on('click', function() {
@@ -160,6 +162,10 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
     $('#J_dls').text(utils.format_size(report.recv)+'/s');
     $('#J_up').text(utils.format_size(report.sended));
     $('#J_dl').text(utils.format_size(report.recved));
+    $('#J_ups_ht').text(utils.format_size(report.htsend)+'/s');
+    $('#J_dls_ht').text(utils.format_size(report.htrecv)+'/s');
+    $('#J_up_ht').text(utils.format_size(report.htsended));
+    $('#J_dl_ht').text(utils.format_size(report.htrecved));
   };
 
   return {

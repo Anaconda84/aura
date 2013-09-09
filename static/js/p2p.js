@@ -221,22 +221,41 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       //console.debug('p2p:speed_report');
       var This = this;
       _.map(_.values(this.peers), function(peer) {
-        This.peer_trans[peer.trans_id] = {
-          sended: peer.sended(),
-          recved: peer.recved()
-        };
+//        if(peer instanceof HttpPeer)
+        if(peer.id.indexOf('http:') === 0 || peer.id.indexOf('https:') === 0)
+        {
+          debugger;
+          This.peer_trans[peer.trans_id] = {
+            htsended: peer.sended(),
+            htrecved: peer.recved()
+          };
+        }
+        else
+        {
+          This.peer_trans[peer.trans_id] = {
+            sended: peer.sended(),
+            recved: peer.recved()
+          };
+        }
       });
       var _sended = sum(_.pluck(_.values(this.peer_trans), 'sended')) || 0;
       var _recved = sum(_.pluck(_.values(this.peer_trans), 'recved')) || 0;
+      var _htsended = sum(_.pluck(_.values(this.peer_trans), 'htsended')) || 0;
+      var _htrecved = sum(_.pluck(_.values(this.peer_trans), 'htrecved')) || 0;
 
       if (_.isFunction(this.onspeedreport)) {
         var elapsed = (now() - this.last_speed_report) / 1000;
         this.onspeedreport({send: (_sended - this._sended) / elapsed, sended: _sended,
-                            recv: (_recved - this._recved) / elapsed, recved: _recved});
+                            recv: (_recved - this._recved) / elapsed, recved: _recved,
+                            htsend: (_htsended - this._htsended) / elapsed, htsended: _htsended,
+                            htrecv: (_htrecved - this._htrecved) / elapsed, htrecved: _htrecved,
+        });
       }
 
       this._sended = _sended;
       this._recved = _recved;
+      this._htsended = _htsended;
+      this._htrecved = _htrecved;
       this.last_speed_report = now();
     },
 

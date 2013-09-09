@@ -23,7 +23,7 @@ define(['jquery', 'file_meta', 'underscore'], function($, file_meta) {
     // private
     init: function() {
       console.debug('fileSystem:init');
-      requestFileSystem(window.TEMPORARY, 5*1024*1024*1024 /* 5G */, _.bind(this.oninitfs, this), this.onerror);
+      requestFileSystem(window.TEMPORARY, 1*1024*1024*1024 /* 1G */, _.bind(this.oninitfs, this), this.onerror);
     },
 
     onerror: function(e) {
