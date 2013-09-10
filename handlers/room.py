@@ -89,6 +89,12 @@ class RoomWebSocket(BaseWebSocket):
 	if self.room_manager:
     	    self.write_message({'cmd': 'find_url', 'url': self.room_manager.get_url(url['url'])})
 
+    def cmd_send_statistics(self, str):
+        stat = json.loads(str['stat'])
+	logging.debug('cmd_send_statistics: %s' % stat)
+	if self.room:
+    	    self.room.add_statistics(stat)
+
 handlers = [
         (r'/room', ListRoomHandler),
         (r'/room/new', NewHandler),

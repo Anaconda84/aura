@@ -30,6 +30,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       this.peers = {};
       this.ready = false;
 
+      this.hronology = {};
       this.inuse_peer = {};
       this.bad_peer = {};
       this.blocked_peer = {};
@@ -39,6 +40,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       this.finished_block = {};
       this.pending_block = {};
       this.block_chunks = {};
+      this.stat = {};
 
       this._sended = 0;
       this._recved = 0;
@@ -53,40 +55,54 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
     },
 
     new_room: function(file_meta, callback) {
+      this.hronology[(new Date()).getTime()] = 'New room';
       console.debug('p2p:new_room');
       this.ws.send(JSON.stringify({cmd: 'new_room', file_meta: file_meta}));
     },
 
     join_room: function(room_id) {
+      this.hronology[(new Date()).getTime()] = 'Join room';
       console.debug('p2p:join_room');
       this.ws.send(JSON.stringify({cmd: 'join_room', roomid: room_id}));
     },
 
     add_http_peer: function(url) {
+      this.hronology[(new Date()).getTime()] = 'Add http peer';
       console.debug('p2p:add_http_peer');
       this.ws.send(JSON.stringify({cmd: 'add_http_peer', url: url,
                                    bitmap: client.finished_piece.join('')}));
     },
 
     update_peer_list: function() {
+      this.hronology[(new Date()).getTime()] = 'Update peer list';
       console.debug('p2p:update_peer_list');
       this.ws.send(JSON.stringify({cmd: 'get_peer_list'}));
     },
 
     update_file_list: function(client) {
+      this.hronology[(new Date()).getTime()] = 'Update file list';
       console.debug('p2p:update_file_list');
       this.list_files = new FileList.List(client);
     },
 
     update_bitmap: function(client) {
+      this.hronology[(new Date()).getTime()] = 'Update bitmap';
       console.debug('p2p:update_bitmap');
       this.ws.send(JSON.stringify({cmd: 'update_bitmap', bitmap: client.finished_piece.join('')}));
       console.debug('p2p:End update_bitmap');
     },
 
     get_url: function(url) {
+      this.hronology[(new Date()).getTime()] = 'Get url';
       console.debug('p2p:get_url');
       this.ws.send(JSON.stringify({cmd: 'get_url', url: url}));
+    },
+
+    send_statistics: function() {
+      this.hronology[(new Date()).getTime()] = 'Send statistics';
+      console.debug('p2p:send_statistics');
+      var str = JSON.stringify(this.stat);
+      this.ws.send(JSON.stringify({cmd: 'send_statistics', stat: str}));
     },
 
     health: function() {
@@ -221,10 +237,8 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       //console.debug('p2p:speed_report');
       var This = this;
       _.map(_.values(this.peers), function(peer) {
-//        if(peer instanceof HttpPeer)
         if(peer.id.indexOf('http:') === 0 || peer.id.indexOf('https:') === 0)
         {
-          debugger;
           This.peer_trans[peer.trans_id] = {
             htsended: peer.sended(),
             htrecved: peer.recved()
@@ -245,11 +259,26 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
 
       if (_.isFunction(this.onspeedreport)) {
         var elapsed = (now() - this.last_speed_report) / 1000;
-        this.onspeedreport({send: (_sended - this._sended) / elapsed, sended: _sended,
-                            recv: (_recved - this._recved) / elapsed, recved: _recved,
-                            htsend: (_htsended - this._htsended) / elapsed, htsended: _htsended,
-                            htrecv: (_htrecved - this._htrecved) / elapsed, htrecved: _htrecved,
+        var sendps = (_sended - this._sended) / elapsed || 0;
+        var recvps = (_recved - this._recved) / elapsed || 0;
+        var htsendps = (_htsended - this._htsended) / elapsed || 0;
+        var htrecvps = (_htrecved - this._htrecved) / elapsed || 0;
+        this.onspeedreport({send: sendps, sended: _sended,
+                            recv: recvps, recved: _recved,
+                            htsend: htsendps, htsended: _htsended,
+                            htrecv: htrecvps, htrecved: _htrecved,
         });
+        this.stat['roomid'] = window.roomid;
+        this.stat['peerid'] = this.peerid;
+        this.stat['send'] = _sended || 0;
+        this.stat['recv'] = _recved || 0;
+        this.stat['sendps'] = sendps || 0;
+        this.stat['recvps'] = recvps || 0;
+        this.stat['htsend'] = _htsended || 0;
+        this.stat['htrecv'] = _htrecved || 0;
+        this.stat['htsendps'] = htsendps || 0;
+        this.stat['htrecvps'] = htrecvps || 0;
+        this.stat['hronology'] = this.hronology || 0;
       }
 
       this._sended = _sended;

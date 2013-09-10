@@ -27,15 +27,19 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
 
     var client = new p2p.Client();
     J_console.append('<li>websocket connecting...');
+    client.hronology[(new Date()).getTime()] = 'Start client';
 
     client.onready = function() {
+      client.hronology[(new Date()).getTime()] = 'Onready client';
       client.get_url(video.src);
       client.ongeturl = function(roomid) {
+        client.hronology[(new Date()).getTime()] = 'Ongeturl client';
         window.roomid = roomid;
         J_console.append('<li>connected. get peerid: '+client.peerid);
         J_console.append('<li>getting file meta...');
         client.join_room(window.roomid);
         client.onfilemeta = function(file_meta) {
+          client.hronology[(new Date()).getTime()] = 'Onfilemeta client';
           J_console.append('<li>file: '+file_meta.filename+
                           ' size: '+utils.format_size(file_meta.size)+
                           ' ('+file_meta.type+')');
@@ -57,16 +61,19 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
         };
 
         client.onpeerlist = function(peer_list) {
+          client.hronology[(new Date()).getTime()] = 'Onpeerlist client';
           $('#J_health').text(''+(client.health()*100).toFixed(2)+'%');
           $('#J_peers').text(_.size(peer_list));
           client.start_process();
         };
 
         client.onpeerconnect = function(peer) {
+          client.hronology[(new Date()).getTime()] = 'Onpeerconnect client';
           $('#J_conn').text(_.size(client.peers));
         };
 
         client.onpeerdisconnect = function(peer) {
+          client.hronology[(new Date()).getTime()] = 'Onpeerdisconnect client';
           $('#J_conn').text(_.size(client.peers));
         };
 
@@ -82,6 +89,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
         };
 
         var create_video = _.once(function(url) {
+          client.hronology[(new Date()).getTime()] = 'Create video client';
 //          J_console.append('<li><div id=J_video_wrap><video id=J_video>video not supported</video></div>');
 //          var video = $('#J_video').get(0);
           var video_pre_seek = 8;
@@ -91,6 +99,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
           video.autoplay = false;
           video.controls = true;
           video.addEventListener('canplay', function() {
+            client.hronology[(new Date()).getTime()] = 'Canplay video client';
             $('#J_video_wrap').width('auto');
             $('#J_video_wrap').height('auto');
             if (on_error_time) {
@@ -99,6 +108,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             }
           });
           video.addEventListener('error', function() {
+            client.hronology[(new Date()).getTime()] = 'Error video client';
             on_error_time = Math.max(0, video.currentTime);
             console.debug('video: play error on '+on_error_time+', retry in 5s.');
             setTimeout(function() {
@@ -112,6 +122,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             if (seektime == on_error_time) {
               return ;
             }
+            client.hronology[(new Date()).getTime()] = 'Seeking viteo client. Seektime = '+seektime;
             on_error_time = seektime;
             var piece = Math.floor(seektime / video.duration * client.file_meta.piece_cnt);
 
@@ -145,6 +156,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
         });
 
         client.onpiece = function(piece) {
+          client.hronology[(new Date()).getTime()] = 'Onpiece client. Piece = '+piece;
           $('#J_progress').text(''+(_.filter(client.finished_piece, _.identity).length / client.finished_piece.length * 100).toFixed(2)+'%');
 
           if (piece === 0 && 'video/ogg,video/mp4,video/webm,audio/ogg'.indexOf(client.file_meta.type) != -1) {
@@ -155,6 +167,8 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
         client.onfinished = function() {
           J_console.append('<li>download completed: <a href="'+client.file.toURL()+
                        '" download="'+client.file_meta.filename+'">'+client.file_meta.filename+'</a>');
+          client.speed_report();
+          client.send_statistics();
         };
       };
     };

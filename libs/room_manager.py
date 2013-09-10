@@ -89,6 +89,22 @@ class Room(object):
     def add_http_peer(self):
 	class_to_base(self, self.id)
 
+    def add_statistics(self, stat):
+	logging.debug('Room.add_statistics: %s' % stat)
+	conn = pymongo.Connection()
+	db = conn.stat
+	coll_stat = db.mycoll
+	doc = {}
+	doc = {'peerid': stat['peerid'] ,'stat': stat}
+
+	import pdb; pdb.set_trace()
+	if doc:
+	    if coll_stat.find({'peerid': doc['peerid']}).count() > 0:
+    		record = coll_stat.find({'peerid': doc['peerid']})[0]
+    		if record:
+		    coll_stat.update({'peerid': doc['peerid']}, doc)
+	    else:
+		coll_stat.save(doc)
 
 class Peer(object):
     def __init__(self, peerid, ws):
@@ -142,9 +158,9 @@ def class_to_base(obj_class, roomid):
 	    coll.update({'hash': roomid}, doc)
 	    logging.debug('update room to database: %s' % doc)
     else:
-        coll.save(doc)
+#        coll.save(doc)
         logging.debug('new room to database: %s' % doc)
-    conn.close()
+#    conn.close()
 
 def base_to_class(roomid):
     conn = pymongo.Connection()

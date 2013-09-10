@@ -23,8 +23,10 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
 
   var client = new p2p.Client();
   J_console.append('<li>websocket connecting...');
+  client.hronology[(new Date()).getTime()] = 'Start client';
 
   client.onready = function() {
+    client.hronology[(new Date()).getTime()] = 'Onready client';
     client.update_file_list(client);
     J_console.append('<li>connected. get peerid: '+client.peerid);
     J_console.append('<li>select a file to share: <input type=file id=J_file />');
@@ -45,6 +47,7 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
       J_console.append('<li>calculating sha1 hash: <span id=J_hash>0%</span>');
 
       client.onfilemeta = function(file_meta) {
+        client.hronology[(new Date()).getTime()] = 'Onfilemeta client';
         client.file.write(file, 0, function(evt) {
           client.piece_queue = [];
           client.finished_piece = _.map(client.finished_piece, function() { return 1; });
@@ -145,15 +148,18 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
   };
 
   client.onpeerlist = function(peer_list) {
+    client.hronology[(new Date()).getTime()] = 'Onpeerlist client';
     $('#J_health').text(''+(client.health()*100).toFixed()+'%');
     $('#J_peers').text(_.size(peer_list));
   };
 
   client.onpeerconnect = function(peer) {
+    client.hronology[(new Date()).getTime()] = 'Onpeerconnect client';
     $('#J_conn').text(_.size(client.peers));
   };
 
   client.onpeerdisconnect = function(peer) {
+    client.hronology[(new Date()).getTime()] = 'Onpeerdisconnect client';
     $('#J_conn').text(_.size(client.peers));
   };
 
