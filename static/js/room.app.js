@@ -34,10 +34,10 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
       client.get_url(video.src);
       client.ongeturl = function(roomid) {
         client.hronology[(new Date()).getTime()] = 'Ongeturl client';
-        window.roomid = roomid;
+        client.roomid = roomid;
         J_console.append('<li>connected. get peerid: '+client.peerid);
         J_console.append('<li>getting file meta...');
-        client.join_room(window.roomid);
+        client.join_room(client.roomid);
         client.onfilemeta = function(file_meta) {
           client.hronology[(new Date()).getTime()] = 'Onfilemeta client';
           J_console.append('<li>file: '+file_meta.filename+

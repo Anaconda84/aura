@@ -97,7 +97,6 @@ class Room(object):
 	doc = {}
 	doc = {'peerid': stat['peerid'] ,'stat': stat}
 
-	import pdb; pdb.set_trace()
 	if doc:
 	    if coll_stat.find({'peerid': doc['peerid']}).count() > 0:
     		record = coll_stat.find({'peerid': doc['peerid']})[0]

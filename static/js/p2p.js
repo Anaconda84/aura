@@ -23,6 +23,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
   Client.prototype = {
     init: function() {
       console.debug('p2p:init');
+      this.roomid = null;
       this.peerid = null;
       this.file_meta = null;
       this.file = null;
@@ -268,7 +269,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
                             htsend: htsendps, htsended: _htsended,
                             htrecv: htrecvps, htrecved: _htrecved,
         });
-        this.stat['roomid'] = window.roomid;
+        this.stat['roomid'] = this.roomid;
         this.stat['peerid'] = this.peerid;
         this.stat['send'] = _sended || 0;
         this.stat['recv'] = _recved || 0;
