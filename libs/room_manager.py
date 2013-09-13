@@ -157,9 +157,8 @@ def class_to_base(obj_class, roomid):
 	    coll.update({'hash': roomid}, doc)
 	    logging.debug('update room to database: %s' % doc)
     else:
-#        coll.save(doc)
+        coll.save(doc)
         logging.debug('new room to database: %s' % doc)
-#    conn.close()
 
 def base_to_class(roomid):
     conn = pymongo.Connection()

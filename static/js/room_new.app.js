@@ -27,7 +27,7 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
 
   client.onready = function() {
     client.hronology[(new Date()).getTime()] = 'Onready client';
-    client.update_file_list(client);
+//    client.update_file_list(client);
     J_console.append('<li>connected. get peerid: '+client.peerid);
     J_console.append('<li>select a file to share: <input type=file id=J_file />');
     $('#J_file').on('change', function(evt) {

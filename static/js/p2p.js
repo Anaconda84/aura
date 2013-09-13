@@ -30,6 +30,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       this.ws = null;
       this.peers = {};
       this.ready = false;
+      this.seeking = false;
 
       this.hronology = {};
       this.inuse_peer = {};
