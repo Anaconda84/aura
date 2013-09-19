@@ -24,11 +24,17 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
     for (var i = 0; i < ref.length; i++)
     {
       var video =ref.get(i);
-//      video.attr('disabled', true);
+      video.controls = false;
 
       var client = new p2p.Client();
       J_console.append('<li>websocket connecting...');
       client.hronology[(new Date()).getTime()] = 'Start client';
+
+      window.onbeforeunload = function()
+      {
+         client.send_statistics();
+      }
+
 
       client.onready = function() {
         client.hronology[(new Date()).getTime()] = 'Onready client';
@@ -98,13 +104,14 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
 //            var video = $('#J_video').get(0);
             var video_pre_seek = 8;
             var on_error_time = 0;
-//            video.src = url;
+            video.src = url;
             video.preload = 'metadata';
             video.autoplay = false;
             video.controls = true;
             video.addEventListener('canplay', function() {
               client.hronology[(new Date()).getTime()] = 'Canplay video client';
               console.debug('video: canplay');
+              video.controls = true;
 //              $('#J_video_wrap').width('auto');
 //              $('#J_video_wrap').height('auto');
               if (on_error_time) {
