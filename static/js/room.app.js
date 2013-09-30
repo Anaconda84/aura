@@ -4,6 +4,8 @@
 // Created on 2013-04-24 15:11:35
 
 define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
+  p2p_module = p2p;
+  stat_traf = {};
   var J_console = $('#J_console');
 
   // feature detect
@@ -20,7 +22,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
   if (!miss_feature) {
 
     // find 'p2p_' in attribute id in document
-    var ref = $('[id ^= "p2p_"]')
+    var ref = $('[id ^= "p2p:"]')
     for (var i = 0; i < ref.length; i++)
     {
       var video =ref.get(i);
@@ -38,7 +40,6 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
 
       client.onready = function() {
         client.hronology[(new Date()).getTime()] = 'Onready client';
-//        client.update_file_list(client);
         client.get_url(video.src);
         client.ongeturl = function(roomid) {
           client.hronology[(new Date()).getTime()] = 'Ongeturl client';
@@ -51,49 +52,32 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             J_console.append('<li>file: '+file_meta.filename+
                           ' size: '+utils.format_size(file_meta.size)+
                           ' ('+file_meta.type+')');
-            J_console.append('<li><dl class=info>'+
-                        '<dt>progress</dt> <dd id=J_progress>0%</dd>'+
-                        '<dt>health</dt> <dd id=J_health>0%</dd>'+
-                        '<dt>peers</dt> <dd id=J_peers>1</dd>'+
-                        '<dt>connected</dt> <dd id=J_conn>0</dd>'+
-                        '<dt>upload</dt> <dd id=J_ups>0B/s</dd> <dd id=J_up>0B</dd>'+
-                        '<dt>download</dt> <dd id=J_dls>0B/s</dd> <dd id=J_dl>0B</dd>'+
-                        '<dt>http upload</dt> <dd id=J_ups_ht>0B/s</dd> <dd id=J_up_ht>0B</dd>'+
-                        '<dt>http download</dt> <dd id=J_dls_ht>0B/s</dd> <dd id=J_dl_ht>0B</dd>'+
-                       '</dl> <button id=J_refresh_peer_list>refresh</button>');
+            J_console.append('<li><button id=J_refresh_peer_list>refresh</button>');
+
             $('#J_refresh_peer_list').on('click', function() {
               _.bind(client.update_peer_list, client)();
             });
             client.update_peer_list();
             setInterval(_.bind(client.update_peer_list, client), 60*1000); // 1min
+            Window.cur_file = 'file_'+file_meta.hash;
+            client.update_file_list();
           };
 
           client.onpeerlist = function(peer_list) {
             client.hronology[(new Date()).getTime()] = 'Onpeerlist client';
-            $('#J_health').text(''+(client.health()*100).toFixed(2)+'%');
-            $('#J_peers').text(_.size(peer_list));
             client.start_process();
           };
 
           client.onpeerconnect = function(peer) {
             client.hronology[(new Date()).getTime()] = 'Onpeerconnect client';
-            $('#J_conn').text(_.size(client.peers));
           };
 
           client.onpeerdisconnect = function(peer) {
             client.hronology[(new Date()).getTime()] = 'Onpeerdisconnect client';
-            $('#J_conn').text(_.size(client.peers));
           };
 
           client.onspeedreport = function(report) {
-            $('#J_ups').text(utils.format_size(report.send)+'/s');
-            $('#J_dls').text(utils.format_size(report.recv)+'/s');
-            $('#J_up').text(utils.format_size(report.sended));
-            $('#J_dl').text(utils.format_size(report.recved));
-            $('#J_ups_ht').text(utils.format_size(report.htsend)+'/s');
-            $('#J_dls_ht').text(utils.format_size(report.htrecv)+'/s');
-            $('#J_up_ht').text(utils.format_size(report.htsended));
-            $('#J_dl_ht').text(utils.format_size(report.htrecved));
+            client.fill_info_table(report);
           };
 
           var create_video = _.once(function(url) {

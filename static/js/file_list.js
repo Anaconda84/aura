@@ -3,13 +3,14 @@
 //         http://binux.me
 // Created on 2013-05-01 12:18:24
 
-define(['jquery', 'file_meta', 'underscore'], function($, file_meta) {
+define(['jquery', 'utils', 'file_meta', 'underscore'], function($, utils, file_meta) {
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 
-  function fileList(client) {
+  var J_console = $('#J_console');
+
+  function fileList() {
     console.debug('fileList');
     this.entries = null;
-    this.client = client;
     this.init();
   }
 
@@ -53,43 +54,81 @@ define(['jquery', 'file_meta', 'underscore'], function($, file_meta) {
       if(file.size)
       {
           var This = this;
-          J_console.append('<li>connected. get peerid: '+this.This.client.peerid);
 
+          var client = new p2p_module.Client();
+          client.ishronology = false;
+          J_console.append('<li>websocket connecting...');
+          client.hronology[(new Date()).getTime()] = 'Start client';
 
-          J_console.append('size: '+file.size);
-          var builder = file_meta.build(file);
-          builder.onload = function(result) {
-            $('#J_hash').text(result.hash);
-
-            J_console.append('<li>sending file meta...');
-            This.client.new_room(result);
-          };
-          builder.onprogress = function(data) {
-            $('#J_hash').text(''+(data.done/data.total*100).toFixed(2)+'%');
-          };
-          J_console.append('<li>calculating sha1 hash: <span id=J_hash>0%</span>');
-
-          This.client.onfilemeta = function(file_meta) {
-            This.client.piece_queue = [];
-            This.client.finished_piece = _.map(This.client.finished_piece, function() { return 1; });
-            This.client.update_bitmap(This.client);
-            J_console.append('<li>room created: <a href="/room/'+file_meta.hash+'" target=_blank>'+
-                           location.href.replace(/room\/new.*$/i, 'room/'+file_meta.hash)+'</a>');
-            J_console.append('<li><dl class=info>'+
-                            '<dt>health</dt> <dd id=J_health>100%</dd>'+
-                            '<dt>peers</dt> <dd id=J_peers>1</dd>'+
-                            '<dt>connected</dt> <dd id=J_conn>0</dd>'+
-                            '<dt>upload</dt> <dd id=J_ups>0B/s</dd> <dd id=J_up>0B</dd>'+
-                            '<dt>download</dt> <dd id=J_dls>0B/s</dd> <dd id=J_dl>0B</dd>'+
-                           '</dl> <button id=J_refresh_peer_list>refresh</button>');
-
-            $('#J_refresh_peer_list').on('click', function() {
-              _.bind(This.client.update_peer_list, This.client)();
-            });
-            This.client.update_peer_list();
-            setInterval(_.bind(This.client.update_peer_list, This.client), 60*1000); // 1min
-
+          window.onbeforeunload = function()
+          {
+            client.send_statistics();
           }
+
+
+          client.onready = function() {
+            if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onready client'; }
+            console.debug('file_list: Onready client');
+
+            J_console.append('<li>connected. get peerid: '+client.peerid);
+            J_console.append('size: '+file.size);
+
+            J_console.append('<li>getting file meta...');
+            client.roomid = file.name.split('_')[1];
+            client.join_room(client.roomid);
+            client.onfilemeta = function(file_meta) {
+              if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onfilemeta client'; }
+              J_console.append('<li>file: '+file_meta.filename+
+                          ' size: '+utils.format_size(file_meta.size)+
+                          ' ('+file_meta.type+')');
+              client.finished_piece = _.map(client.finished_piece, function() { return 1; });
+              client.create_bitmap(file, file_meta);
+              client.oncreatebitmap = function() {
+                client.update_bitmap(client);
+                client.update_peer_list();
+                setInterval(_.bind(client.update_peer_list, client), 60*1000); // 1min
+              }
+            };
+
+            client.onpeerlist = function(peer_list) {
+              console.debug('file_list: Onpeerlist.');
+              if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onpeerlist client'; }
+              client.start_process();
+            };
+
+            client.onpeerconnect = function(peer) {
+              if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onpeerconnect client'; }
+                console.debug('file_list: Onpeerconnect.');
+            };
+
+            client.onpeerdisconnect = function(peer) {
+              if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onpeerdisconnect client'; }
+                console.debug('file_list: Onpeerdisconnect.');
+            };
+
+            client.onspeedreport = function(report) {
+//              console.debug('file_list: Onspeedreport.');
+              client.fill_info_table(report);
+//              console.debug(stat);
+            };
+
+            client.onpiece = function(piece) {
+              if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onpiece client. Piece = '+piece; }
+              console.debug('file_list: onpiece = '+piece);
+//              $('#J_progress').text(''+(_.filter(client.finished_piece, _.identity).length / client.finished_piece.length * 100
+
+            };
+
+            client.onfinished = function() {
+              console.debug('file_list: onfinished');
+              J_console.append('<li>download completed: <a href="'+client.file.toURL()+
+                       '" download="'+client.file_meta.filename+'">'+client.file_meta.filename+'</a>');
+              client.speed_report();
+              client.send_statistics();
+            };
+
+
+         };
 
       }
     },
@@ -105,11 +144,16 @@ define(['jquery', 'file_meta', 'underscore'], function($, file_meta) {
          dirReader.readEntries (function(results) {
           if (!results.length) {
             This.entries = entries;
-//            for (var This.current_entry in This.entries) {
             for(var i = 0; i < This.entries.length; i++) {
               This.current_entry = This.entries[i];
-//              This.current_entry.getMetadata(This.onmetafile, This.onerror);
-              This.current_entry.file(This.onfile, This.onerror);
+              if(This.current_entry.name === Window.cur_file)
+              {
+                console.debug('fileSystem:File '+This.current_entry.name+' is equivalent Window.cur_file.');
+              }
+              else
+              {
+                This.current_entry.file(This.onfile, This.onerror);
+              }
             }
           } else {
             entries = entries.concat(toArray(results));

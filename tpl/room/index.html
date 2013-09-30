@@ -4,7 +4,26 @@
 
 {% block main %}
 <section>
-  <div id=J_video_wrap><video id=p2p_J_video src="http://duroscope.ru:6878/MMM.mp4" type='video/mp4' controls>video not supported</video></div>
+  <div id=J_video_wrap><video id=p2p:J_video src="http://duroscope.ru:6878/{{ video }}" type='video/mp4' controls>video not supported</video></div>
+  <table id=infoTable class=info border=1>
+    <tr align=center>
+        <th colspan=2>upload</th>
+        <th colspan=2>download</th>
+        <th colspan=2>up_http</th>
+        <th colspan=2>down_http</th>
+    </tr>
+    <tr align=center>
+        <td>0B/s</td>
+        <td>0B</td>
+        <td>0B/s</td>
+        <td>0B</td>
+        <td>0B/s</td>
+        <td>0B</td>
+        <td>0B/s</td>
+        <td>0B</td>
+    </tr>
+  </table>
+
   <ul id=J_console> </ul>
 </section>
 {% end %}

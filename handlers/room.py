@@ -19,12 +19,12 @@ class ListRoomHandler(BaseHandler):
         self.render('room/list.html', rooms = rooms)
 
 class RoomHandler(BaseHandler):
-    def get(self, roomid):
+    def get(self, video):
 #        room = self.room_manager.get(roomid)
 #        if not room:
 #            raise HTTPError(404)
 #        self.render('room/index.html', room = room)
-	self.render('room/index.html')
+	self.render('room/index.html', video = video)
 
 class RoomWebSocket(BaseWebSocket):
     def open(self):
@@ -75,8 +75,10 @@ class RoomWebSocket(BaseWebSocket):
             self.write_message({'cmd': 'peer_list', 'peer_list': self.room.peer_list()})
 
     def cmd_update_bitmap(self, data):
+	logging.debug('cmd_update_bitmap.')
         if self.peer:
             self.peer.bitmap = data['bitmap']
+#	    self.write_message({'cmd': 'update_bitmap', 'status': 'OK'})
 
     def cmd_add_http_peer(self, data):
         if self.room:
@@ -91,7 +93,7 @@ class RoomWebSocket(BaseWebSocket):
 
     def cmd_send_statistics(self, str):
         stat = json.loads(str['stat'])
-	logging.debug('cmd_send_statistics: %s' % stat)
+#	logging.debug('cmd_send_statistics: %s' % stat)
 	if self.room:
     	    self.room.add_statistics(stat)
 
@@ -99,5 +101,6 @@ handlers = [
         (r'/room', ListRoomHandler),
         (r'/room/new', NewHandler),
         (r'/room/ws', RoomWebSocket),
-        (r'/room/(\w+)', RoomHandler),
+#        (r'/room/(\w+)', RoomHandler),
+        (r'/room/(.+)', RoomHandler),
         ]

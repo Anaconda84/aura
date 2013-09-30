@@ -52,7 +52,7 @@ define(['underscore', 'lib/sha1.min'], function(__, _sha1) {
       for (i=0; i<workers_cnt; ++i) {
         var worker = new Worker('/static/js/sha1_worker.js');
         worker.onmessage = function(evt) {
-          //console.log('sha1-worker result: ', evt.data);
+          console.log('sha1-worker result: ', evt.data);
           sha1_array[evt.data.id] = evt.data.hash;
           check_finished();
           window.URL.revokeObjectURL(evt.data.blob);

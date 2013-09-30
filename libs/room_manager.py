@@ -51,7 +51,7 @@ class RoomManager(object):
 		    return record['roomid']
 		    conn.close()
 	conn.close()
-	return None
+	return url
 
 class Room(object):
     def __init__(self, id, meta):
@@ -90,7 +90,7 @@ class Room(object):
 	class_to_base(self, self.id)
 
     def add_statistics(self, stat):
-	logging.debug('Room.add_statistics: %s' % stat)
+#	logging.debug('Room.add_statistics: %s' % stat)
 	conn = pymongo.Connection()
 	db = conn.stat
 	coll_stat = db.mycoll

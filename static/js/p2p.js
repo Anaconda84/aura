@@ -3,7 +3,8 @@
 //         http://binux.me
 // Created on 2013-04-22 17:20:48
 
-define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore', 'lib/sha1.min'], function(peer, hpeer, ws_peer, FileSystem, FileList) {
+define(['peer', 'file_meta', 'utils', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore', 'lib/sha1.min'], function(peer, file_meta, utils, hpeer, ws_peer, FileSystem, FileList) {
+  var J_console = $('#J_console');
   function sum(list) {
     return _.reduce(list, function(memo, num){ return memo + num; }, 0);
   }
@@ -44,8 +45,12 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       this.block_chunks = {};
       this.stat = {};
 
+      this.ishronology = true;
+
       this._sended = 0;
       this._recved = 0;
+      this._htsended = 0;
+      this._htrecved = 0;
       this.peer_trans = {};
       this.last_speed_report = now();
       var speed_report_interval = setInterval(_.bind(this.speed_report, this), 1000);
@@ -54,54 +59,80 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
         (location.protocol == 'https:' ? 'wss://' : 'ws://')+location.host+'/room/ws');
       this.ws.onopen = _.bind(this.onwsopen, this);
       this.ws.onmessage = _.bind(this.onwsmessage, this);
+
     },
 
     new_room: function(file_meta, callback) {
-      this.hronology[(new Date()).getTime()] = 'New room';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'New room'; }
       console.debug('p2p:new_room');
       this.ws.send(JSON.stringify({cmd: 'new_room', file_meta: file_meta}));
     },
 
     join_room: function(room_id) {
-      this.hronology[(new Date()).getTime()] = 'Join room';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Join room'; }
       console.debug('p2p:join_room');
       this.ws.send(JSON.stringify({cmd: 'join_room', roomid: room_id}));
     },
 
     add_http_peer: function(url) {
-      this.hronology[(new Date()).getTime()] = 'Add http peer';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Add http peer'; }
       console.debug('p2p:add_http_peer');
       this.ws.send(JSON.stringify({cmd: 'add_http_peer', url: url,
                                    bitmap: client.finished_piece.join('')}));
     },
 
     update_peer_list: function() {
-      this.hronology[(new Date()).getTime()] = 'Update peer list';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Update peer list'; }
       console.debug('p2p:update_peer_list');
       this.ws.send(JSON.stringify({cmd: 'get_peer_list'}));
     },
 
-    update_file_list: function(client) {
-      this.hronology[(new Date()).getTime()] = 'Update file list';
+    update_file_list: function() {
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Update file list'; }
       console.debug('p2p:update_file_list');
-      this.list_files = new FileList.List(client);
+      this.list_files = new FileList.List();
     },
 
     update_bitmap: function(client) {
-      this.hronology[(new Date()).getTime()] = 'Update bitmap';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Update bitmap'; }
       console.debug('p2p:update_bitmap');
       this.ws.send(JSON.stringify({cmd: 'update_bitmap', bitmap: client.finished_piece.join('')}));
-      console.debug('p2p:End update_bitmap');
+    },
+
+    create_bitmap: function(file, fm) {
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Create bitmap'; }
+      console.debug('p2p:create_bitmap');
+
+      this.fm = fm;
+      this.finished_piece = [];
+      for(i=0; i<this.fm.sha1_array.length; i++) { this.finished_piece[i] = 0; }
+      This = this;
+      var builder = file_meta.build(file);
+      builder.onload = function(result) {
+        for(i=0; i<This.finished_piece.length; i++)
+        {
+          if(This.fm.sha1_array[i] && result.sha1_array[i] && This.fm.sha1_array[i] === result.sha1_array[i]) { This.finished_piece[i] = 1; This.piece_queue.splice(This.piece_queue.indexOf(i), 1); }
+        }
+        $('#J_hash').text(result.hash);
+        console.debug('p2p:bitmap',  This.finished_piece);
+        This.oncreatebitmap();
+      };
+
+      builder.onprogress = function(data) {
+        $('#J_hash').text(''+(data.done/data.total*100).toFixed(2)+'%');
+      };
+      J_console.append('<li>calculating sha1 hash: <span id=J_hash>0%</span>');
+
     },
 
     get_url: function(url) {
-      this.hronology[(new Date()).getTime()] = 'Get url';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Get url'; }
       console.debug('p2p:get_url');
       this.ws.send(JSON.stringify({cmd: 'get_url', url: url}));
     },
 
     send_statistics: function() {
-      this.hronology[(new Date()).getTime()] = 'Send statistics';
+      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'Send statistics'; }
       console.debug('p2p:send_statistics');
       var str = JSON.stringify(this.stat);
       this.ws.send(JSON.stringify({cmd: 'send_statistics', stat: str}));
@@ -129,6 +160,29 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       return min+(_.filter(tmp, function(num) { return num > min; }).length / tmp.length);
     },
 
+    fill_info_table: function(report) {
+//      if(this.ishronology) { this.hronology[(new Date()).getTime()] = 'fill_info_table'; }
+//      console.debug('p2p:fill_info_table');
+
+      stat_traf['send'] = ((stat_traf['send'] || 0)+report.sended) || 0;
+      stat_traf['recv'] = ((stat_traf['recv'] || 0)+report.recved) || 0;
+      stat_traf['htsend'] = ((stat_traf['htsend'] || 0)+report.htsended) || 0;
+      stat_traf['htrecv'] = ((stat_traf['htrecv'] || 0)+report.htrecved) || 0;
+
+      var info_table = $('#infoTable')[0];
+      if(info_table)
+      {
+        info_table.rows[1].cells[0].innerHTML = utils.format_size(report.send)+'/s';
+        if(stat_traf['send']) { info_table.rows[1].cells[1].innerHTML = utils.format_size(stat_traf['send']); }
+        info_table.rows[1].cells[2].innerHTML = utils.format_size(report.recv)+'/s';
+        if(stat_traf['recv']) { info_table.rows[1].cells[3].innerHTML = utils.format_size(stat_traf['recv']); }
+        info_table.rows[1].cells[4].innerHTML = utils.format_size(report.htsend)+'/s';
+        if(stat_traf['htsend']) { info_table.rows[1].cells[5].innerHTML = utils.format_size(stat_traf['htsend']); }
+        info_table.rows[1].cells[6].innerHTML = utils.format_size(report.htrecv)+'/s';
+        if(stat_traf['htrecv']) { info_table.rows[1].cells[7].innerHTML = utils.format_size(stat_traf['htrecv']); }
+      }
+    },
+
     // export 
     onready: function() { console.log('onready'); },
     onfilemeta: function(file_meta) { console.log('onfilemeta', file_meta); },
@@ -138,7 +192,10 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
     onpeerdisconnect: function(peer) { console.log('onnewpeer', peer); },
     onpiece: function(piece) { console.log('onpiece', piece); },
     onfinished: function() { console.log('onfinished'); },
-    onspeedreport: function(report) { console.log('onspeedreport', report); },
+//    onspeedreport: function(report) { console.log('onspeedreport', report); },
+    onspeedreport: function(report) { },
+    oncreatebitmap: function() { console.log('oncreatebitmap'); },
+//    onupdatebitmap: function() { console.log('onupdatebitmap'); },
 
     // private
     ensure_connection: function(peerid, connect) {
@@ -206,7 +263,7 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
 
     request_block: function(peer, piece, block) {
       console.debug('p2p:request_block');
-      console.debug('request_block: '+peer.target+', '+piece+', '+block);
+      console.debug('request_block: '+peer.id+', '+piece+', '+block);
       this.inuse_peer[peer.id] += 1;
       this.pending_block[piece][block] = peer.id;
       peer.send({cmd: 'request_block', piece: piece, block: block});
@@ -242,6 +299,8 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
         if(peer.id.indexOf('http:') === 0 || peer.id.indexOf('https:') === 0)
         {
           This.peer_trans[peer.trans_id] = {
+            sended: 0,
+            recved: 0,
             htsended: peer.sended(),
             htrecved: peer.recved()
           };
@@ -250,9 +309,13 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
         {
           This.peer_trans[peer.trans_id] = {
             sended: peer.sended(),
-            recved: peer.recved()
+            recved: peer.recved(),
+            htsended: 0,
+            htrecved: 0
           };
         }
+//        console.debug('p2p:peer_trans['+peer.trans_id+']='+This.peer_trans[peer.trans_id].htrecved+', '+This.peer_trans[peer.trans_id].htsended+' | '+This.peer_trans[peer.trans_id].recved+', '+This.peer_trans[peer.trans_id].sended);
+//        if(This.peer_trans[peer.trans_id].recved || This.peer_trans[peer.trans_id].sended) { debugger; }
       });
       var _sended = sum(_.pluck(_.values(this.peer_trans), 'sended')) || 0;
       var _recved = sum(_.pluck(_.values(this.peer_trans), 'recved')) || 0;
@@ -260,16 +323,25 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
       var _htrecved = sum(_.pluck(_.values(this.peer_trans), 'htrecved')) || 0;
 
       if (_.isFunction(this.onspeedreport)) {
-        var elapsed = (now() - this.last_speed_report) / 1000;
-        var sendps = (_sended - this._sended) / elapsed || 0;
-        var recvps = (_recved - this._recved) / elapsed || 0;
-        var htsendps = (_htsended - this._htsended) / elapsed || 0;
-        var htrecvps = (_htrecved - this._htrecved) / elapsed || 0;
-        this.onspeedreport({send: sendps, sended: _sended,
-                            recv: recvps, recved: _recved,
-                            htsend: htsendps, htsended: _htsended,
-                            htrecv: htrecvps, htrecved: _htrecved,
-        });
+        if(!(_sended == 0 &&  this._sended) &&  
+           !(_recved == 0 && this._recved) &&
+           !(_htsended == 0 &&  this._htsended) &&  
+           !(_htrecved == 0 && this._htrecved) ) { 
+            var elapsed = (now() - this.last_speed_report) / 1000;
+            var sendps = (_sended - this._sended) / elapsed || 0;
+            var recvps = (_recved - this._recved) / elapsed || 0;
+            var sended = (_sended - this._sended) || 0;
+            var recved = (_recved - this._recved) || 0;
+            var htsendps = (_htsended - this._htsended) / elapsed || 0;
+            var htrecvps = (_htrecved - this._htrecved) / elapsed || 0;
+            var htsended = (_htsended - this._htsended) || 0;
+            var htrecved = (_htrecved - this._htrecved) || 0;
+            this.onspeedreport({send: sendps, sended: sended,
+                            recv: recvps, recved: recved,
+                            htsend: htsendps, htsended: htsended,
+                            htrecv: htrecvps, htrecved: htrecved,
+            });
+        }
         this.stat['roomid'] = this.roomid;
         this.stat['peerid'] = this.peerid;
         this.stat['send'] = _sended || 0;
@@ -511,6 +583,11 @@ define(['peer', 'http_peer', 'ws_peer', 'file_system', 'file_list', 'underscore'
               this.ongeturl(this.url);
             }
             break;
+//          case 'update_bitmap':
+//            if (_.isFunction(this.ongeturl)) {
+//              this.onupdatebitmap();
+//            }
+//            break;
 
           default:
             break;

@@ -69,11 +69,11 @@ define(['underscore'], function() {
     init: function() {
       console.debug('fileSystem:init');
       requestFileSystem(window.TEMPORARY, 1*1024*1024*1024 /* 1G */, _.bind(this.oninitfs, this), this.onerror);
-      window.addEventListener('beforeunload', _.bind(function() {
-        if (this.file_entry) {
-//          this.file_entry.remove(function() {}, this.onerror);
-        }
-      }, this));
+//      window.addEventListener('beforeunload', _.bind(function() {
+//        if (this.file_entry) {
+////          this.file_entry.remove(function() {}, this.onerror);
+//        }
+//      }, this));
     },
 
     onerror: function(e) {

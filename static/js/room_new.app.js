@@ -5,7 +5,6 @@
 
 define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_meta, p2p, utils) {
   var J_console = $('#J_console');
-  window.J_console = $('#J_console');
 
   // feature detect
   var feature = ['JSON', 'WebSocket', 'URL', 'Worker', 'ArrayBuffer', 'Uint8Array',
@@ -54,6 +53,9 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
           client.update_bitmap(client);
           J_console.append('<li>room created: <a href="/room/'+file_meta.hash+'" target=_blank>'+
                            location.href.replace(/room\/new.*$/i, 'room/'+file_meta.hash)+'</a>');
+
+          J_console.append('<li><button id=J_refresh_peer_list>refresh</button>');
+
           J_console.append('<li><dl class=info>'+
                             '<dt>health</dt> <dd id=J_health>100%</dd>'+
                             '<dt>peers</dt> <dd id=J_peers>1</dd>'+
@@ -164,6 +166,20 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
   };
 
   client.onspeedreport = function(report) {
+//    var info_table = $('#infoTable')[0];
+//    if(info_table)
+//    {
+//      info_table.rows[client.row_num].cells[3].innerHTML = utils.format_size(report.send)+'/s';
+//      info_table.rows[client.row_num].cells[4].innerHTML = utils.format_size(report.sended);
+//      info_table.rows[client.row_num].cells[5].innerHTML = utils.format_size(report.recv)+'/s';
+//      info_table.rows[client.row_num].cells[6].innerHTML = utils.format_size(report.recved);
+//      info_table.rows[client.row_num].cells[7].innerHTML = utils.format_size(report.htsend)+'/s';
+//      info_table.rows[client.row_num].cells[8].innerHTML = utils.format_size(report.htsended);
+//      info_table.rows[client.row_num].cells[9].innerHTML = utils.format_size(report.htrecv)+'/s';
+//      info_table.rows[client.row_num].cells[10].innerHTML = utils.format_size(report.htrecved);
+
+//    }
+
     $('#J_ups').text(utils.format_size(report.send)+'/s');
     $('#J_dls').text(utils.format_size(report.recv)+'/s');
     $('#J_up').text(utils.format_size(report.sended));
