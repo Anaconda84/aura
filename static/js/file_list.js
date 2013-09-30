@@ -57,7 +57,7 @@ define(['jquery', 'utils', 'file_meta', 'underscore'], function($, utils, file_m
 
           var client = new p2p_module.Client();
           client.ishronology = false;
-          J_console.append('<li>websocket connecting...');
+//          J_console.append('<li>websocket connecting...');
           client.hronology[(new Date()).getTime()] = 'Start client';
 
           window.onbeforeunload = function()
@@ -68,25 +68,28 @@ define(['jquery', 'utils', 'file_meta', 'underscore'], function($, utils, file_m
 
           client.onready = function() {
             if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onready client'; }
-            console.debug('file_list: Onready client');
+//            console.debug('file_list: Onready client');
 
-            J_console.append('<li>connected. get peerid: '+client.peerid);
-            J_console.append('size: '+file.size);
+//            J_console.append('<li>connected. get peerid: '+client.peerid);
+//            J_console.append('size: '+file.size);
 
-            J_console.append('<li>getting file meta...');
+//            J_console.append('<li>getting file meta...');
             client.roomid = file.name.split('_')[1];
             client.join_room(client.roomid);
             client.onfilemeta = function(file_meta) {
               if(client.ishronology) { client.hronology[(new Date()).getTime()] = 'Onfilemeta client'; }
-              J_console.append('<li>file: '+file_meta.filename+
-                          ' size: '+utils.format_size(file_meta.size)+
-                          ' ('+file_meta.type+')');
+//              J_console.append('<li>file: '+file_meta.filename+
+//                          ' size: '+utils.format_size(file_meta.size)+
+//                          ' ('+file_meta.type+')');
               client.finished_piece = _.map(client.finished_piece, function() { return 1; });
               client.create_bitmap(file, file_meta);
               client.oncreatebitmap = function() {
                 client.update_bitmap(client);
                 client.update_peer_list();
                 setInterval(_.bind(client.update_peer_list, client), 60*1000); // 1min
+                J_console.append('<li>file: '+file_meta.filename+
+                          ' size: '+utils.format_size(file_meta.size)+
+                          ' ('+file_meta.type+') - OK.');
               }
             };
 

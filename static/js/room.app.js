@@ -52,11 +52,11 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             J_console.append('<li>file: '+file_meta.filename+
                           ' size: '+utils.format_size(file_meta.size)+
                           ' ('+file_meta.type+')');
-            J_console.append('<li><button id=J_refresh_peer_list>refresh</button>');
+//            J_console.append('<li><button id=J_refresh_peer_list>refresh</button>');
 
-            $('#J_refresh_peer_list').on('click', function() {
-              _.bind(client.update_peer_list, client)();
-            });
+//            $('#J_refresh_peer_list').on('click', function() {
+//              _.bind(client.update_peer_list, client)();
+//            });
             client.update_peer_list();
             setInterval(_.bind(client.update_peer_list, client), 60*1000); // 1min
             Window.cur_file = 'file_'+file_meta.hash;

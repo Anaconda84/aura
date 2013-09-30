@@ -121,7 +121,7 @@ define(['peer', 'file_meta', 'utils', 'http_peer', 'ws_peer', 'file_system', 'fi
       builder.onprogress = function(data) {
         $('#J_hash').text(''+(data.done/data.total*100).toFixed(2)+'%');
       };
-      J_console.append('<li>calculating sha1 hash: <span id=J_hash>0%</span>');
+//      J_console.append('<li>calculating sha1 hash: <span id=J_hash>0%</span>');
 
     },
 
