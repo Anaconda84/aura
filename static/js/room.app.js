@@ -65,6 +65,11 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
 
           client.onpeerlist = function(peer_list) {
             client.hronology[(new Date()).getTime()] = 'Onpeerlist client';
+            var info_table = $('#infoTable')[0];
+            if(info_table)
+            {
+              info_table.rows[1].cells[0].innerHTML = (_.size(peer_list)-1).toString();
+            }
             client.start_process();
           };
 

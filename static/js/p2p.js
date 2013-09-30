@@ -172,14 +172,14 @@ define(['peer', 'file_meta', 'utils', 'http_peer', 'ws_peer', 'file_system', 'fi
       var info_table = $('#infoTable')[0];
       if(info_table)
       {
-        info_table.rows[1].cells[0].innerHTML = utils.format_size(report.send)+'/s';
-        if(stat_traf['send']) { info_table.rows[1].cells[1].innerHTML = utils.format_size(stat_traf['send']); }
-        info_table.rows[1].cells[2].innerHTML = utils.format_size(report.recv)+'/s';
-        if(stat_traf['recv']) { info_table.rows[1].cells[3].innerHTML = utils.format_size(stat_traf['recv']); }
-        info_table.rows[1].cells[4].innerHTML = utils.format_size(report.htsend)+'/s';
-        if(stat_traf['htsend']) { info_table.rows[1].cells[5].innerHTML = utils.format_size(stat_traf['htsend']); }
-        info_table.rows[1].cells[6].innerHTML = utils.format_size(report.htrecv)+'/s';
-        if(stat_traf['htrecv']) { info_table.rows[1].cells[7].innerHTML = utils.format_size(stat_traf['htrecv']); }
+        info_table.rows[1].cells[1].innerHTML = utils.format_size(report.send)+'/s';
+        if(stat_traf['send']) { info_table.rows[1].cells[2].innerHTML = utils.format_size(stat_traf['send']); }
+        info_table.rows[1].cells[3].innerHTML = utils.format_size(report.recv)+'/s';
+        if(stat_traf['recv']) { info_table.rows[1].cells[4].innerHTML = utils.format_size(stat_traf['recv']); }
+        info_table.rows[1].cells[5].innerHTML = utils.format_size(report.htsend)+'/s';
+        if(stat_traf['htsend']) { info_table.rows[1].cells[6].innerHTML = utils.format_size(stat_traf['htsend']); }
+        info_table.rows[1].cells[7].innerHTML = utils.format_size(report.htrecv)+'/s';
+        if(stat_traf['htrecv']) { info_table.rows[1].cells[8].innerHTML = utils.format_size(stat_traf['htrecv']); }
       }
     },
 
