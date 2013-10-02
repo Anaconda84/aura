@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: Binux<i@binux.me>
-#         http://binux.me
 # Created on 2013-04-20 20:03:41
 
 import uuid
 import json
 from base import *
+from libs.log_file import *
+
+log = Log('/var/log/aura')
+log_stat_rooms = Log('/var/log/aura_stat')
 
 class NewHandler(BaseHandler):
     def get(self):
@@ -29,6 +30,7 @@ class RoomHandler(BaseHandler):
 class RoomWebSocket(BaseWebSocket):
     def open(self):
         logging.debug('new socket')
+	log.append('new socket\n')
         self.peerid = str(uuid.uuid4())
         self.peer = None
         self.room = None
@@ -37,6 +39,7 @@ class RoomWebSocket(BaseWebSocket):
     def on_message(self, message):
         data = json.loads(message)
         logging.debug('ws: %s' % message)
+	log.append('ws: %s\n' % message)
 
         if data.get('cmd') and callable(getattr(self, 'cmd_'+data.get('cmd', ''), None)):
             getattr(self, 'cmd_'+data.get('cmd', ''))(data)
@@ -70,12 +73,15 @@ class RoomWebSocket(BaseWebSocket):
 
     def cmd_get_peer_list(self, data):
 	logging.debug('cmd_get_peer_list: %s' % data)
+	log.append('cmd_get_peer_list: %s/n' % data)
         if self.room:
 	    logging.debug('self.room.peer_list() = %s' % self.room.peer_list())
+	    log.append('self.room.peer_list() = %s\n' % self.room.peer_list())
             self.write_message({'cmd': 'peer_list', 'peer_list': self.room.peer_list()})
 
     def cmd_update_bitmap(self, data):
 	logging.debug('cmd_update_bitmap.')
+	log.append('cmd_update_bitmap.\n')
         if self.peer:
             self.peer.bitmap = data['bitmap']
 #	    self.write_message({'cmd': 'update_bitmap', 'status': 'OK'})
@@ -88,6 +94,7 @@ class RoomWebSocket(BaseWebSocket):
 
     def cmd_get_url(self, url):
 	logging.debug('cmd_get_url: %s' % url)
+	log.append('cmd_get_url: %s\n' % url)
 	if self.room_manager:
     	    self.write_message({'cmd': 'find_url', 'url': self.room_manager.get_url(url['url'])})
 

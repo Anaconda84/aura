@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: Binux<i@binux.me>
-#         http://binux.me
-# Created on 2013-04-22 16:15:32
+# Created on 2013-10-01 10:00:00
 import logging
 import cPickle
 import base64
 import pymongo
 import copy
+from handlers.room import log
+from handlers.room import log_stat_rooms
 
 class RoomManager(object):
     def __init__(self):
+	logging.debug('Starting logging file.')
         self.rooms = {}
 	self.rooms = get_from_base()
 
@@ -19,25 +19,35 @@ class RoomManager(object):
         if meta['hash'] in self.rooms:
             if self.rooms[meta['hash']].sha1_array == meta['sha1_array']:
 		logging.debug('get: %s' % self.rooms)
+		log.append('get: %s\n' % self.rooms)
                 return self.rooms[meta['hash']]
             else:
                 return None
         else:
             self.rooms[meta['hash']] = Room(meta['hash'], meta)
 	    logging.debug('new: %s' % self.rooms)
+	    log.append('new: %s\n' % self.rooms)
             return self.rooms[meta['hash']]
 
     def delete(self, roomid):
 	logging.debug('delete: %s' % roomid)
+	log.append('delete: %s\n' % roomid)
         if roomid in self.rooms:
             del self.rooms[roomid]
 
     def get(self, roomid):
 	logging.debug('get: %s' % roomid)
+	log.append('get: %s\n' % roomid)
+	out = 'rooms='+str(len(self.rooms))
+	for each in self.rooms.values():
+	    out = out + '\tfilename='+each.filename+'\tpeers='+str(len(each.peers))
+        log_stat_rooms.append(out+'\n')
+
         return self.rooms.get(roomid)
 
     def keys(self):
 	logging.debug('keys: %s' % self.rooms.keys())
+	log.append('keys: %s\n' % self.rooms.keys())
         return self.rooms.keys()
 
     def get_url(self, url):
@@ -65,20 +75,24 @@ class Room(object):
 
     def join(self, peerid, ws):
 	logging.debug('Room.join: %s' % peerid)
+	log.append('Room.join: %s\n' % peerid)
         self.peers[peerid] = Peer(peerid, ws)
         return self.peers[peerid]
 
     def leave(self, peerid):
 	logging.debug('Room.leave: %s' % peerid)
+	log.append('Room.leave: %s\n' % peerid)
         if peerid in self.peers:
             del self.peers[peerid]
 
     def get(self, peerid):
 	logging.debug('Room.get: %s' % peerid)
+	log.append('Room.get: %s\n' % peerid)
         return self.peers.get(peerid)
 
     def peer_list(self):
 	logging.debug('Room.peer_list: %s' % self.peers)
+	log.append('Room.peer_list: %s\n' % self.peers)
         result = {}
         for each in self.peers.itervalues():
             result[each.peerid] = {
@@ -154,11 +168,14 @@ def class_to_base(obj_class, roomid):
         record = coll.find({'hash': roomid})[0]
         if record:
 	    logging.debug('room exist: %s' % record['room'])
+	    log.append('room exist: %s\n' % record['room'])
 	    coll.update({'hash': roomid}, doc)
 	    logging.debug('update room to database: %s' % doc)
+	    log.append('update room to database: %s\n' % doc)
     else:
         coll.save(doc)
         logging.debug('new room to database: %s' % doc)
+	log.append('new room to database: %s\n' % doc)
 
 def base_to_class(roomid):
     conn = pymongo.Connection()
@@ -170,6 +187,7 @@ def base_to_class(roomid):
         record = coll.find({'hash': roomid})[0]
         if record:
             logging.debug('get room from database: %s' % record['room'])
+	    log.append('get room from database: %s\n' % record['room'])
 	    decoded=base64.b64decode(record['room'])
             result = cPickle.loads(decoded)
 

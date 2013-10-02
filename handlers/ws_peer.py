@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: Binux<i@binux.me>
-#         http://binux.me
 # Created on 2013-05-03 17:03:10
 
 import os
@@ -12,6 +9,7 @@ from base import *
 class FileWebSocket(BaseWebSocket):
     def open(self, hash):
         logging.debug('ws_peer: new connect')
+	log.append('ws_peer: new connect\n')
         print options.file_path+', '+hash
         if os.path.exists(os.path.join(options.file_path, hash)):
             self.file = open(os.path.join(options.file_path, hash))
@@ -20,6 +18,7 @@ class FileWebSocket(BaseWebSocket):
 
     def on_message(self, message):
         logging.debug('ws_peer: %s' % message)
+	log.append('ws_peer: %s\n' % message)
         data = json.loads(message)
 
         self.write_message({'cmd': 'start', 'piece': data['piece'], 'block': data['block']})

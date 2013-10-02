@@ -26,7 +26,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
     for (var i = 0; i < ref.length; i++)
     {
       var video =ref.get(i);
-      video.controls = false;
+//      video.controls = false;
 
       var client = new p2p.Client();
       J_console.append('<li>websocket connecting...');
