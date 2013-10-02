@@ -19,6 +19,8 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
       J_console.append('<li><span class=error>Need Feature: '+f+'</span>');
     }
   });
+  if (miss_feature) return;
+
   if (!miss_feature) {
 
     // find 'p2p_' in attribute id in document
@@ -48,6 +50,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
           J_console.append('<li>getting file meta...');
           client.join_room(client.roomid);
           client.onfilemeta = function(file_meta) {
+            console.debug('Onfilemeta.');
             client.hronology[(new Date()).getTime()] = 'Onfilemeta client';
             J_console.append('<li>file: '+file_meta.filename+
                           ' size: '+utils.format_size(file_meta.size)+
@@ -95,8 +98,9 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             var on_error_time = 0;
             video.src = url;
             video.preload = 'metadata';
-            video.autoplay = false;
+            video.autoplay = true;
             video.controls = true;
+
             video.addEventListener('canplay', function() {
               client.hronology[(new Date()).getTime()] = 'Canplay video client';
               console.debug('video: canplay');
