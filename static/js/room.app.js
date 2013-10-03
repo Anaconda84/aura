@@ -63,7 +63,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             client.update_peer_list();
             setInterval(_.bind(client.update_peer_list, client), 60*1000); // 1min
             Window.cur_file = 'file_'+file_meta.hash;
-            client.update_file_list();
+//            client.update_file_list();
           };
 
           client.onpeerlist = function(peer_list) {
@@ -94,6 +94,8 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
 //            video.attr('disabled', false);
 //            J_console.append('<li><div id=J_video_wrap><video id=J_video>video not supported</video></div>');
 //            var video = $('#J_video').get(0);
+            start_video = video.currentTime;
+            console.debug('video: start_video='+start_video);
             var video_pre_seek = 8;
             var on_error_time = 0;
             video.src = url;
@@ -107,6 +109,11 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
               video.controls = true;
 //              $('#J_video_wrap').width('auto');
 //              $('#J_video_wrap').height('auto');
+              console.debug('video: canplay start_video='+start_video);
+              if(start_video) {
+                console.debug('video: set time video start_video='+start_video);
+                video.currentTime = start_video;
+              }
               if (on_error_time) {
                 video.currentTime = on_error_time;
                 video.play();
@@ -177,6 +184,7 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
 
             if (piece === 0 && 'video/ogg,video/mp4,video/webm,audio/ogg'.indexOf(client.file_meta.type) != -1) {
               create_video(client.file.toURL());
+              client.update_file_list();
             }
             client.seeking = false;
           };
