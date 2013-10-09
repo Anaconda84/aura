@@ -12,7 +12,8 @@ from tornado.options import define, options
 from libs.room_manager import RoomManager
 
 define("bind", default="duroscope.ru", help="addrs bind to")
-define("port", default=8888, help="the port listen to")
+#define("port", default=8888, help="the port listen to")
+define("port", default=9999, help="the port listen to")
 define("debug", default=False, help="debug mode")
 define("config", default="", help="config file")
 define("file_path", default="./data/", help="file path for websocket peer")

@@ -24,7 +24,8 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
   if (!miss_feature) {
 
     // find 'p2p_' in attribute id in document
-    var ref = $('[id ^= "p2p:"]')
+//    var ref = $('[id ^= "p2p:"]')
+    var ref = $('video', '[id ^= "p2p:"]');
     for (var i = 0; i < ref.length; i++)
     {
       var video =ref.get(i);
@@ -100,15 +101,15 @@ define(['jquery', 'p2p', 'utils', 'underscore'], function($, p2p, utils) {
             var on_error_time = 0;
             video.src = url;
             video.preload = 'metadata';
-            video.autoplay = true;
-            video.controls = true;
+            video.autoplay = false;
+            video.controls = false;
 
             video.addEventListener('canplay', function() {
               client.hronology[(new Date()).getTime()] = 'Canplay video client';
               console.debug('video: canplay');
-              video.controls = true;
-//              $('#J_video_wrap').width('auto');
-//              $('#J_video_wrap').height('auto');
+              video.controls = false;
+              $('#J_video_wrap').width($(video).width()); // hold video width
+              $('#J_video_wrap').height($(video).height());
               console.debug('video: canplay start_video='+start_video);
               if(start_video) {
                 console.debug('video: set time video start_video='+start_video);

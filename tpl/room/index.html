@@ -4,7 +4,13 @@
 
 {% block main %}
 <section>
-  <div id=J_video_wrap><video id=p2p:J_video src="http://duroscope.ru:6878/{{ video }}" type='video/mp4' autoplay controls>video not supported</video></div>
+  <video id="p2p:J_video" class="video-js vjs-default-skin" controls
+   preload="auto" width="800" height="340" poster="http://duroscope.ru:6878/sintel.png"
+   data-setup="{}">
+   <source src="http://duroscope.ru:6878/{{ video }}" type='video/mp4'>
+    video not supported
+  </video
+
   <br><br>
   <table id=infoTable class=info border=0>
     <col width="75"><col width="75"><col width="75"><col width="75"><col width="75"><col width="75"><col width="75"><col width="75"><col width="75">
@@ -34,8 +40,11 @@
 
 {% block script %}
 <script>
-  require(['room.app'], function(room) {
-    window.client = room.client;
+  videojs("p2p:J_video").ready(function(){
+    var myPlayer = this;
+    require(['room.app'], function(room) {
+      window.client = room.client;
+    });
   });
 </script>
 {% end %}

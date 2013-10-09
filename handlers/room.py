@@ -52,7 +52,7 @@ class RoomWebSocket(BaseWebSocket):
 
     def on_close(self):
 	logging.debug('on_close:')
-	log.append('on_close:/n')
+	log.append('on_close:\n')
         if self.room:
             self.room.leave(self.peerid)
             if len(self.room.peers) == 0:
@@ -60,14 +60,14 @@ class RoomWebSocket(BaseWebSocket):
 
     def cmd_new_room(self, data):
 	logging.debug('cmd_new_room:')
-	log.append('cmd_new_room:/n')
+	log.append('cmd_new_room:\n')
         self.room = self.room_manager.new(data['file_meta'])
         self.peer = self.room.join(self.peerid, self)
         self.write_message({'cmd': 'file_meta', 'file_meta': self.room.meta})
 
     def cmd_join_room(self, data):
 	logging.debug('cmd_join_room:')
-	log.append('cmd_join_room:/n')
+	log.append('cmd_join_room:\n')
         self.room = self.room_manager.get(data['roomid'])
         if self.room:
             self.peer = self.room.join(self.peerid, self)
@@ -75,13 +75,13 @@ class RoomWebSocket(BaseWebSocket):
 
     def cmd_get_meta(self, data):
 	logging.debug('cmd_get_meta:')
-	log.append('cmd_get_meta:/n')
+	log.append('cmd_get_meta:\n')
         if self.room:
             self.write_message({'cmd': 'file_meta', 'file_meta': self.room.meta})
 
     def cmd_get_peer_list(self, data):
 	logging.debug('cmd_get_peer_list: %s' % data)
-	log.append('cmd_get_peer_list: %s/n' % data)
+	log.append('cmd_get_peer_list: %s\n' % data)
         if self.room:
 	    logging.debug('self.room.peer_list() = %s' % self.room.peer_list())
 	    log.append('self.room.peer_list() = %s\n' % self.room.peer_list())
