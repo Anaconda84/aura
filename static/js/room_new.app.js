@@ -20,6 +20,20 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
   });
   if (miss_feature) return;
 
+  function getParam(sParamName) {
+    var Params = location.search.substring(1).split("&");
+    var variable = "";
+    for (var i = 0; i < Params.length; i++){
+        if (Params[i].split("=")[0] == sParamName){
+            if (Params[i].split("=").length > 1) variable = Params[i].split("=")[1];
+            return variable;
+        }
+    }
+    return "";
+  }
+  var file_mp4 = getParam("mp4");
+  var url_mp4 = getParam("url");
+
   var client = new p2p.Client();
   J_console.append('<li>websocket connecting...');
   client.hronology[(new Date()).getTime()] = 'Start client';

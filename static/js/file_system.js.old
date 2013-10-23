@@ -4,15 +4,18 @@
 // Created on 2013-05-01 12:18:24
 
 define(['underscore'], function() {
-  if (window.webkitRequestFileSystem) {
-    window.requestFileSystem = window.webkitRequestFileSystem;
-  }
+//  if (window.webkitRequestFileSystem) {
+//    window.requestFileSystem = window.webkitRequestFileSystem;
+//  }
+  window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 
-  function fileSystemFile(size, callback) {
-    this.size = size;
+  function fileSystemFile(file_meta, callback) {
+    this.size = file_meta.size;
+    this.file_meta = file_meta;
     this.callback = callback;
 
-    this.filename = _.uniqueId('file_'+(new Date()).getTime()+'_'+_.random(3721));
+//    this.filename = _.uniqueId('file_'+file_meta.hash+'_'+_.random(3721));
+    this.filename = 'file_'+file_meta.hash;
     this.fs = null;
     this.file_entry = null;
 
@@ -22,6 +25,7 @@ define(['underscore'], function() {
   fileSystemFile.prototype = {
     // public
     write: function(blob, offset, callback) {
+      console.debug('fileSystem:write');
       if (!this.file_entry) {
         throw 'file entry is not setted';
       }
@@ -39,12 +43,14 @@ define(['underscore'], function() {
     },
 
     readAsBlob: function(start, end, callback) {
+      console.debug('fileSystem:readAsBlob');
       this.file_entry.file(function(file) {
         callback(file.slice(start, end));
       });
     },
     
     readAsBinaryString: function(start, end, callback) {
+      console.debug('fileSystem:readAsBinaryString');
       this.readAsBlob(start, end, function(blob) {
         var reader = new FileReader();
         reader.onload = function(evt) {
@@ -55,30 +61,20 @@ define(['underscore'], function() {
     },
 
     toURL: function() {
+      console.debug('fileSystem:toURL');
       return this.file_entry.toURL();
     },
 
     // private
     init: function() {
-
-//      window.webkitStorageInfo.requestQuota(PERSISTENT, 5*1024*1024*1024, function(grantedBytes) {
-//        window.requestFileSystem(PERSISTENT, grantedBytes, onInitFs, errorHandler);
-//      }, function(e) {
-//        console.log('Error', e);
-//      });
-
-      navigator.webkitPersistentStorage.requestQuota(5*1024*1024*1024, _.bind(function(grantedBytes) {
-        requestFileSystem(window.PERSISTENT, 5*1024*1024*1024 /* 5G */, _.bind(this.oninitfs, this), this.onerror);
-        window.addEventListener('beforeunload', _.bind(function() {
-          if (this.file_entry) {
-            this.file_entry.remove(function() {}, this.onerror);
-          }
-        }, this))
-      }, this), function(e) {
-        alert('Error - '+e);
-        console.log('Error', e);
-      });
-
+      console.debug('fileSystem:init');
+      this.This = this;
+      requestFileSystem(window.TEMPORARY, 1*1024*1024*1024 /* 1G */, _.bind(this.oninitfs, this), this.onerror);
+//      window.addEventListener('beforeunload', _.bind(function() {
+//        if (this.file_entry) {
+////          this.file_entry.remove(function() {}, this.onerror);
+//        }
+//      }, this));
     },
 
     onerror: function(e) {
@@ -86,6 +82,7 @@ define(['underscore'], function() {
       switch (e.code) {
         case FileError.QUOTA_EXCEEDED_ERR:
           alert('Error writing file, is your harddrive almost full?');
+          this.This.clear();
           break;
         case FileError.NOT_FOUND_ERR:
           alert('NOT_FOUND_ERR');
@@ -104,23 +101,55 @@ define(['underscore'], function() {
       }
     },
 
+    clear: function () {
+        console.debug('fileSystem:clear');
+        console.debug("request to clear file system");
+        var fs= requestFileSystem(TEMPORARY, 1024,
+        function(fs) {
+          var dirReader = fs.root.createReader();
+          console.debug("writer initialized");
+          debugger;
+
+          dirReader.readEntries(function(entries) { //function not firing
+
+            console.debug("reading entries in file system"); 
+            for (var i = 0, entry; entry = entries[i]; ++i) {
+              if (entry.isDirectory) {
+                entry.removeRecursively(function() {}, this.onerror);
+              } else {
+                entry.remove(function() {}, this.onerror);
+              }
+            }
+            console.debug("file system cleared");
+          }, this.onerror);
+        }, this.onerror);
+    },
+
     // step 1
     oninitfs: function(fs) {
+      console.debug('fileSystem:oninitfs');
       this.fs = fs;
       this.check_exist();
     },
 
     // step 2
-    check_exist: function() {
-      this.fs.root.getFile(this.filename, {}, function(file_entry) {
-        file_entry.remove(function() { _.bind(this.create_file, this); });
-      }, _.bind(this.create_file, this), this.onerror);
+    check_exist: function () {
+        This = this;
+        this.fs.root.getFile(this.filename, {create : false}, function(file_entry) {
+           console.debug('fileSystem:Exist file: '+This.filename);
+           This.file_entry = file_entry;
+           This.callback();
+        }, function() {
+           console.debug('fileSystem:Not exist file: '+This.filename);
+           This.create_file();
+        });
     },
 
     // step 3
     create_file: function() {
+      console.debug('fileSystem:create_file');
       var This = this;
-      this.fs.root.getFile(this.filename, {create: true, exclusive: true}, function(file_entry) {
+      this.fs.root.getFile(this.filename, {create: true, exclusive: false}, function(file_entry) {
         This.file_entry = file_entry;
         _.bind(This.alloc, This)(This.size);
       }, this.onerror);
@@ -128,6 +157,7 @@ define(['underscore'], function() {
 
     // step 4
     alloc: function(size) {
+      console.debug('fileSystem:alloc');
       var This = this;
       this.file_entry.createWriter(function(fw) {
         function write() {
@@ -152,3 +182,4 @@ define(['underscore'], function() {
     File: fileSystemFile
   };
 });
+

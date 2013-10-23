@@ -68,6 +68,7 @@ define(['underscore'], function() {
     // private
     init: function() {
       console.debug('fileSystem:init');
+      this.This = this;
       requestFileSystem(window.TEMPORARY, 1*1024*1024*1024 /* 1G */, _.bind(this.oninitfs, this), this.onerror);
 //      window.addEventListener('beforeunload', _.bind(function() {
 //        if (this.file_entry) {
@@ -81,6 +82,10 @@ define(['underscore'], function() {
       switch (e.code) {
         case FileError.QUOTA_EXCEEDED_ERR:
           alert('Error writing file, is your harddrive almost full?');
+          this.This.clear();
+          console.debug('fileSystem:init');
+//          debugger;
+          requestFileSystem(window.TEMPORARY, 1*1024*1024*1024 /* 1G */, _.bind(this.This.oninitfs, this.This), this.This.onerror);
           break;
         case FileError.NOT_FOUND_ERR:
           alert('NOT_FOUND_ERR');
@@ -97,6 +102,29 @@ define(['underscore'], function() {
         default:
           alert('webkitRequestFileSystem failed as ' + e.code);
       }
+    },
+
+    clear: function () {
+        console.debug('fileSystem:clear');
+        console.debug("request to clear file system");
+        var fs= requestFileSystem(TEMPORARY, 1024,
+        function(fs) {
+          var dirReader = fs.root.createReader();
+          console.debug("writer initialized");
+
+          dirReader.readEntries(function(entries) { //function not firing
+
+            console.debug("reading entries in file system"); 
+            for (var i = 0, entry; entry = entries[i]; ++i) {
+              if (entry.isDirectory) {
+                entry.removeRecursively(function() {}, this.onerror);
+              } else {
+                entry.remove(function() {}, this.onerror);
+              }
+            }
+            console.debug("file system cleared");
+          }, this.onerror);
+        }, this.onerror);
     },
 
     // step 1
