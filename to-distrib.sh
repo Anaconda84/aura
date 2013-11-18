@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEST=/usr/local/bin/aura
+DEST=/home/server/aura
 DIR=`pwd`
 
 /etc/init.d/aura stop
@@ -13,6 +13,6 @@ cp -r ./* $DEST
 
 python sl.py $DEST
 
-chown -R aura:aura $DEST
+chown -R www-data:www-data $DEST
 
 /etc/init.d/aura start

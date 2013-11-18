@@ -117,5 +117,6 @@ handlers = [
         (r'/room/new', NewHandler),
         (r'/room/ws', RoomWebSocket),
 #        (r'/room/(\w+)', RoomHandler),
-        (r'/room/(.+)', RoomHandler),
+#        (r'/room/(.+)', RoomHandler),
+        (r'/(.+)', RoomHandler),
         ]

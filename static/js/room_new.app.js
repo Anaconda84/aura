@@ -31,8 +31,9 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
     }
     return "";
   }
-  var file_mp4 = getParam("mp4");
+//  var file_mp4 = getParam("mp4");
   var url_mp4 = getParam("url");
+  J_console.append('<li><h2><font color="red">'+url_mp4+'</font></h2>');
 
   var client = new p2p.Client();
   J_console.append('<li>websocket connecting...');
@@ -133,6 +134,7 @@ define(['jquery', 'file_meta', 'p2p', 'utils', 'underscore'], function($, file_m
                     $('#J_hp_add').attr('disabled', false);
                     $('#J_hp_result').text('ok');
                     client.add_http_peer(url);
+		    J_console.append('<h2><a href="http://duroskop.net:8080/admin/admin.php">Дальше</a></h2>');
                   } else {
                     // error
                     peer.close();

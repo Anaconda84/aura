@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python /usr/local/bin/aura/application.py &
+python /home/server/aura/application.py &
 
